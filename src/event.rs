@@ -8,11 +8,17 @@ use crate::{frame::CanFrame, FrameParseError, MAX_MESSAGE_DATA_SIZE, MAX_MESSAGE
 #[derive(Debug, Clone, Eq, PartialEq)]
 #[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub enum Event {
+    /// Device firmware version
     FirmwareVersion(
         #[cfg_attr(feature = "defmt", defmt(Debug2Format))] String<{ MAX_MESSAGE_DATA_SIZE }>,
     ),
+    /// Tried to configure the device while the socket is open (not in config mode)
+    ConfigurationNotAllowed,
+    /// Received an invalid message on the bus
     InvalidMessage,
+    /// Failed to TX a user requested message
     TransmissionError(TransmissionErrorKind),
+    /// Received a frame from the bus
     ReceivedFrame(CanFrame),
 }
 
@@ -22,6 +28,7 @@ pub enum Event {
 #[repr(u8)]
 pub enum EventKind {
     FirmwareVersion = b'V',
+    ConfigurationNotAllowed = b'C',
     InvalidMessage = b'I',
     TransmissionError = b'E',
     ReceivedFrame = b'R',
@@ -31,6 +38,7 @@ impl EventKind {
     const fn get_min_data_length(&self) -> usize {
         match self {
             Self::FirmwareVersion => 5, // 0.0.0
+            Self::ConfigurationNotAllowed => 0,
             Self::InvalidMessage => 0,
             Self::TransmissionError => 1,
             Self::ReceivedFrame => 1 + 3 + 1 + 1, // (id kind + standard id + remote + dlc)
@@ -40,6 +48,7 @@ impl EventKind {
     const fn get_max_data_length(&self) -> usize {
         match self {
             Self::FirmwareVersion => 5 + 1 + 5 + 1 + 5, // 65535.65535.65535
+            Self::ConfigurationNotAllowed => 0,
             Self::InvalidMessage => 0,
             Self::TransmissionError => 1,
             Self::ReceivedFrame => MAX_MESSAGE_DATA_SIZE,
@@ -52,13 +61,18 @@ impl EventKind {
 #[num_enum(error_type(name = EventParseError, constructor = EventParseError::InvalidTransmissionErrorKind))]
 #[repr(u8)]
 pub enum TransmissionErrorKind {
-    AllRetransmissionAttemptsFailed = b'A',
+    /// Tried to transmit a message before opening the CAN socket
+    SocketClosed = b'C',
+    /// Reached the retransmission threshold for a particular frame
+    /// TODO: add ID in event
+    RetransmissionAttemptsExhausted = b'R',
 }
 
 impl Event {
     fn get_kind(&self) -> EventKind {
         match self {
             Self::FirmwareVersion(_) => EventKind::FirmwareVersion,
+            Self::ConfigurationNotAllowed => EventKind::ConfigurationNotAllowed,
             Self::InvalidMessage => EventKind::InvalidMessage,
             Self::TransmissionError(_) => EventKind::TransmissionError,
             Self::ReceivedFrame(_) => EventKind::ReceivedFrame,
@@ -74,6 +88,7 @@ impl Event {
             Self::FirmwareVersion(string) => {
                 result.extend_from_slice(string.as_bytes()).unwrap();
             }
+            Self::ConfigurationNotAllowed => {}
             Self::InvalidMessage => {}
             Self::TransmissionError(transmission_error_kind) => {
                 result.push((*transmission_error_kind).into()).unwrap();
@@ -139,6 +154,7 @@ impl Event {
 
         Ok(match kind {
             EventKind::FirmwareVersion => Self::FirmwareVersion(String::from_utf8(event_data)?),
+            EventKind::ConfigurationNotAllowed => Self::ConfigurationNotAllowed,
             EventKind::InvalidMessage => Self::InvalidMessage,
             EventKind::TransmissionError => Self::TransmissionError(event_data[0].try_into()?),
             EventKind::ReceivedFrame => Self::ReceivedFrame(CanFrame::from_bytes(&event_data)?),
