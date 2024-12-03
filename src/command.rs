@@ -62,21 +62,17 @@ impl CommandKind {
 #[num_enum(error_type(name = CommandParseError, constructor = CommandParseError::InvalidNominalBitrate))]
 #[repr(u8)]
 pub enum NominalBitRate {
-    /// Transmits and receives at 10 Kbit/s
-    Rate10Kbit = b'0',
-    /// Transmits and receives at 50 Kbit/s
-    Rate50Kbit = b'1',
     /// Transmits and receives at 100 Kbit/s
-    Rate100Kbit = b'2',
+    Rate100Kbit = b'0',
     /// Transmits and receives at 125 Kbit/s
-    Rate125Kbit = b'3',
+    Rate125Kbit = b'1',
     /// Transmits and receives at 250 Kbit/s
-    Rate250Kbit = b'4',
+    Rate250Kbit = b'2',
     /// Transmits and receives at 500 Kbit/s
     #[default]
-    Rate500Kbit = b'5',
+    Rate500Kbit = b'3',
     /// Transmits and receives at 1 Mbit/s
-    Rate1Mbit = b'6',
+    Rate1Mbit = b'4',
 }
 
 /// The bit rate used for the data and CRC sections of CAN FD frames with BRS
