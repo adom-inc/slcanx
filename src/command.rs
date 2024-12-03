@@ -57,31 +57,26 @@ impl CommandKind {
 
 /// The bit rate used for CAN 2.0 frames, CAN FD frames without BRS, and the
 /// message ID arbitration for CAN FD frames with BRS
-#[derive(Debug, Clone, Copy, PartialEq, Eq, IntoPrimitive, TryFromPrimitive)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, IntoPrimitive, TryFromPrimitive)]
 #[cfg_attr(feature = "defmt", derive(defmt::Format))]
 #[num_enum(error_type(name = CommandParseError, constructor = CommandParseError::InvalidNominalBitrate))]
 #[repr(u8)]
 pub enum NominalBitRate {
     /// Transmits and receives at 10 Kbit/s
     Rate10Kbit = b'0',
-    /// Transmits and receives at 20 Kbit/s
-    Rate20Kbit = b'1',
     /// Transmits and receives at 50 Kbit/s
-    Rate50Kbit = b'2',
+    Rate50Kbit = b'1',
     /// Transmits and receives at 100 Kbit/s
-    Rate100Kbit = b'3',
+    Rate100Kbit = b'2',
     /// Transmits and receives at 125 Kbit/s
-    Rate125Kbit = b'4',
+    Rate125Kbit = b'3',
     /// Transmits and receives at 250 Kbit/s
-    Rate250Kbit = b'5',
+    Rate250Kbit = b'4',
     /// Transmits and receives at 500 Kbit/s
-    Rate500Kbit = b'6',
-    /// Transmits and receives at 800 Kbit/s
-    Rate800Kbit = b'7',
+    #[default]
+    Rate500Kbit = b'5',
     /// Transmits and receives at 1 Mbit/s
-    Rate1Mbit = b'8',
-    /// Transmits and receives at 83.3 Kbit/s
-    Rate83_3Kbit = b'9',
+    Rate1Mbit = b'6',
 }
 
 /// The bit rate used for the data and CRC sections of CAN FD frames with BRS
@@ -91,6 +86,10 @@ pub enum NominalBitRate {
 #[num_enum(error_type(name = CommandParseError, constructor = CommandParseError::InvalidDataBitrate))]
 #[repr(u8)]
 pub enum DataBitRate {
+    /// Transmits and receives at 500 Kbit/s
+    Rate500Kbit = b'0',
+    /// Transmits and receives at 1 Mbit/s
+    Rate1Mbit = b'1',
     /// Transmits and receives at 2 Mbit/s
     #[default]
     Rate2Mbit = b'2',
