@@ -6,7 +6,8 @@ use crate::{
     codec::{
         bytes_to_hex, dec_digit_to_u8, extended_id_from_hex, extended_id_to_hex, hex_digit_to_u8,
         standard_id_from_hex, standard_id_to_hex, to_hex_digit, unpack_data_bytes,
-    }, MAX_MESSAGE_DATA_SIZE,
+    },
+    MAX_MESSAGE_DATA_SIZE,
 };
 
 /// A joint enum which can hold either a CAN 2.0 frame or a CAN FD frame. See
@@ -57,6 +58,13 @@ impl CanFrame {
         match self {
             CanFrame::Can2(can2_frame) => can2_frame.data(),
             CanFrame::CanFd(can_fd_frame) => Some(can_fd_frame.data()),
+        }
+    }
+
+    pub fn is_fd(&self) -> bool {
+        match self {
+            CanFrame::Can2(_) => false,
+            CanFrame::CanFd(_) => true,
         }
     }
 }
