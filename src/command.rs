@@ -6,6 +6,7 @@ use crate::{frame::CanFrame, FrameParseError, MAX_MESSAGE_DATA_SIZE, MAX_MESSAGE
 #[derive(Debug, Clone, Eq, PartialEq)]
 #[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub enum Command {
+    GetFirmwareVersion,
     SetNominalBitrate(NominalBitRate),
     SetDataBitrate(DataBitRate),
     SetOperatingMode(OperatingMode),
@@ -20,6 +21,7 @@ pub enum Command {
 #[num_enum(error_type(name = CommandParseError, constructor = CommandParseError::UnrecognizedCommand))]
 #[repr(u8)]
 pub enum CommandKind {
+    GetFirmwareVersion = b'V',
     SetNominalBitrate = b'B',
     SetDataBitrate = b'D',
     SetOperatingMode = b'M',
@@ -32,6 +34,7 @@ pub enum CommandKind {
 impl CommandKind {
     const fn get_min_data_length(&self) -> usize {
         match self {
+            Self::GetFirmwareVersion => 0,
             Self::SetNominalBitrate => 1,
             Self::SetDataBitrate => 1,
             Self::SetOperatingMode => 1,
@@ -44,6 +47,7 @@ impl CommandKind {
 
     const fn get_max_data_length(&self) -> usize {
         match self {
+            Self::GetFirmwareVersion => 0,
             Self::SetNominalBitrate => 1,
             Self::SetDataBitrate => 1,
             Self::SetOperatingMode => 1,
@@ -122,6 +126,7 @@ pub enum AutoRetransmissionMode {
 impl Command {
     fn get_kind(&self) -> CommandKind {
         match self {
+            Self::GetFirmwareVersion => CommandKind::GetFirmwareVersion,
             Self::SetNominalBitrate(_) => CommandKind::SetNominalBitrate,
             Self::SetDataBitrate(_) => CommandKind::SetDataBitrate,
             Self::SetOperatingMode(_) => CommandKind::SetOperatingMode,
@@ -138,6 +143,7 @@ impl Command {
         result.push(self.get_kind().into()).unwrap();
 
         match self {
+            Self::GetFirmwareVersion => {}
             Self::SetNominalBitrate(nominal_bit_rate) => {
                 result.push((*nominal_bit_rate).into()).unwrap();
             }
@@ -212,6 +218,7 @@ impl Command {
         /* Parse data bytes */
 
         Ok(match kind {
+            CommandKind::GetFirmwareVersion => Self::GetFirmwareVersion,
             CommandKind::SetNominalBitrate => Self::SetNominalBitrate(command_data[0].try_into()?),
             CommandKind::SetDataBitrate => Self::SetDataBitrate(command_data[0].try_into()?),
             CommandKind::SetOperatingMode => Self::SetOperatingMode(command_data[0].try_into()?),
