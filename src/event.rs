@@ -103,7 +103,7 @@ impl Event {
 }
 
 /// Various errors which can arise while parsing an SLCANX message
-#[derive(Debug, thiserror::Error)]
+#[derive(Debug, Clone, PartialEq, Eq, thiserror::Error)]
 #[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub enum EventParseError {
     /* Generic message parsing */

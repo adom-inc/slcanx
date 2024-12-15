@@ -299,7 +299,7 @@ impl CanFdFrame {
     }
 }
 
-#[derive(Debug, PartialEq, thiserror::Error)]
+#[derive(Debug, Clone, PartialEq, Eq, thiserror::Error)]
 #[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub enum FrameParseError {
     /* Frame Parsing */
