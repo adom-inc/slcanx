@@ -443,7 +443,7 @@ impl CanFrame {
         result
             .push(match self {
                 CanFrame::Can2(can2_frame) => to_hex_digit(can2_frame.dlc as u32),
-                CanFrame::CanFd(can_fd_frame) => to_hex_digit(can_fd_frame.data.len() as u32),
+                CanFrame::CanFd(can_fd_frame) => to_hex_digit(can_fd_frame.dlc() as u32),
             })
             .unwrap();
 
