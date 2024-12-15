@@ -19,3 +19,5 @@ pub const MAX_MESSAGE_DATA_SIZE: usize = MAX_MESSAGE_SIZE - 1;
 pub use command::*;
 pub use event::*;
 pub use frame::*;
+
+pub use embedded_can::{ExtendedId, Id, StandardId};
