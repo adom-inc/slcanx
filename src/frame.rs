@@ -54,6 +54,7 @@ impl CanFrame {
         }
     }
 
+    /// Slice over the full data of the frame (None for RTR frames)
     pub fn data(&self) -> Option<&[u8]> {
         match self {
             CanFrame::Can2(can2_frame) => can2_frame.data(),
@@ -65,6 +66,24 @@ impl CanFrame {
         match self {
             CanFrame::Can2(_) => false,
             CanFrame::CanFd(_) => true,
+        }
+    }
+
+    /// The full length of the data payload or the DLC for RTR frames (not necessarily equal
+    /// to the DLC for FD frames)
+    pub fn data_len(&self) -> usize {
+        match self {
+            CanFrame::Can2(frame) => frame.dlc(),
+            CanFrame::CanFd(frame) => frame.dlc().get_num_bytes(),
+        }
+    }
+
+    /// The actual compressed value sent in the CAN frame (not necessarily equal
+    /// to the data length for FD frames)
+    pub fn dlc(&self) -> u8 {
+        match self {
+            CanFrame::Can2(frame) => frame.dlc() as u8,
+            CanFrame::CanFd(frame) => frame.dlc() as u8,
         }
     }
 }
