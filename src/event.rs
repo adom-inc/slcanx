@@ -18,6 +18,8 @@ pub enum Event {
     InvalidMessage,
     /// Failed to TX a user requested message
     TransmissionError(TransmissionErrorKind),
+    /// The reception FIFO overflowed and the socket closed itself
+    RxFifoOverflow,
     /// Received a frame from the bus
     ReceivedFrame(CanFrame),
 }
@@ -31,6 +33,7 @@ pub enum EventKind {
     ConfigurationNotAllowed = b'C',
     InvalidMessage = b'I',
     TransmissionError = b'E',
+    RxFifoOverflow = b'O',
     ReceivedFrame = b'R',
 }
 
@@ -41,6 +44,7 @@ impl EventKind {
             Self::ConfigurationNotAllowed => 0,
             Self::InvalidMessage => 0,
             Self::TransmissionError => 1,
+            Self::RxFifoOverflow => 0,
             Self::ReceivedFrame => 1 + 3 + 1 + 1, // (id kind + standard id + remote + dlc)
         }
     }
@@ -51,6 +55,7 @@ impl EventKind {
             Self::ConfigurationNotAllowed => 0,
             Self::InvalidMessage => 0,
             Self::TransmissionError => 1,
+            Self::RxFifoOverflow => 0,
             Self::ReceivedFrame => MAX_MESSAGE_DATA_SIZE,
         }
     }
@@ -75,6 +80,7 @@ impl Event {
             Self::ConfigurationNotAllowed => EventKind::ConfigurationNotAllowed,
             Self::InvalidMessage => EventKind::InvalidMessage,
             Self::TransmissionError(_) => EventKind::TransmissionError,
+            Self::RxFifoOverflow => EventKind::RxFifoOverflow,
             Self::ReceivedFrame(_) => EventKind::ReceivedFrame,
         }
     }
@@ -93,6 +99,7 @@ impl Event {
             Self::TransmissionError(transmission_error_kind) => {
                 result.push((*transmission_error_kind).into()).unwrap();
             }
+            Self::RxFifoOverflow => {}
             Self::ReceivedFrame(can_frame) => {
                 result.extend_from_slice(&can_frame.as_bytes()).unwrap();
             }
@@ -157,6 +164,7 @@ impl Event {
             EventKind::ConfigurationNotAllowed => Self::ConfigurationNotAllowed,
             EventKind::InvalidMessage => Self::InvalidMessage,
             EventKind::TransmissionError => Self::TransmissionError(event_data[0].try_into()?),
+            EventKind::RxFifoOverflow => Self::RxFifoOverflow,
             EventKind::ReceivedFrame => Self::ReceivedFrame(CanFrame::from_bytes(&event_data)?),
         })
     }
